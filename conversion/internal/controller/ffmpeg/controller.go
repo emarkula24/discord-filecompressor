@@ -1,22 +1,30 @@
 package ffmpeg
 
 import (
+	"context"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/exec"
 	"strconv"
 )
 
-func Compress() {
+type Controller struct {
+}
+
+func New() *Controller {
+	return &Controller{}
+}
+
+func (c *Controller) Compress(ctx context.Context, duration float64, input string) error {
 	target_video := 8.3 //megabytes
 	target_audio := 1.2 // megabytes
-	d := 218.150998
-	vb, ab := CalculateBitrates(d, target_video, target_audio)
-	input := "/mnt/F6ECB1FBECB1B669/Videot/dvar bemiy.mp4"
-	output := "./output.mp4"
+	// get the video from db here
+	videoBitrate, audioBitrate := CalculateBitrates(duration, target_video, target_audio)
+	output := RandStringBytes(20)
 
-	vbStr := strconv.FormatFloat(vb, 'f', 0, 64)
-	abStr := strconv.FormatFloat(ab, 'f', 0, 64)
+	videoBitrateStr := strconv.FormatFloat(videoBitrate, 'f', 0, 64)
+	audioBitrateStr := strconv.FormatFloat(audioBitrate, 'f', 0, 64)
 
 	// PASS 1
 	cmd1 := exec.Command(
@@ -25,17 +33,16 @@ func Compress() {
 		"-i", input,
 		"-c:v", "libx264",
 		"-preset", "medium",
-		"-b:v", vbStr,
+		"-b:v", videoBitrateStr,
 		"-pass", "1",
 		"-c:a", "aac",
-		"-b:a", abStr,
+		"-b:a", audioBitrateStr,
 		"-f", "mp4", "/dev/null",
 	)
-	// cmd1.Stdout = os.Stdout
+
 	cmd1.Stderr = os.Stderr
 	if err := cmd1.Run(); err != nil {
-		fmt.Println("Error running ffmpeg pass 1:", err)
-		return
+		return fmt.Errorf("error running ffmpeg pass 1 %w", err)
 	}
 
 	// PASS 2
@@ -44,22 +51,35 @@ func Compress() {
 		"-i", input,
 		"-c:v", "libx264",
 		"-preset", "medium",
-		"-b:v", vbStr,
+		"-b:v", videoBitrateStr,
 		"-pass", "2",
 		"-c:a", "aac",
-		"-b:a", abStr,
+		"-b:a", audioBitrateStr,
 		output,
 	)
-	// cmd2.Stdout = os.Stdout
+
 	cmd2.Stderr = os.Stderr
 	if err := cmd2.Run(); err != nil {
-		fmt.Println("Error running ffmpeg pass 2:", err)
+		return fmt.Errorf("error running ffmpeg pass 2 %w", err)
 	}
+	// upload the video here, return link to it if possible
+	return nil
 }
 
-func CalculateBitrates(duration float64, tv, ta float64) (float64, float64) {
+func CalculateBitrates(duration float64, targetVideo, targetAudio float64) (float64, float64) {
 
-	targetVideoBitrate := float64(tv) * float64(8388.608) / duration
-	targetAudioBitrate := float64(ta) * float64(8388.608) / duration
+	targetVideoBitrate := float64(targetVideo) * float64(8388.608) / duration
+	targetAudioBitrate := float64(targetAudio) * float64(8388.608) / duration
+	// result is in kb, ffmpeg requires bytes, thus the conversion here.
 	return targetVideoBitrate * 1000, targetAudioBitrate * 1000
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func RandStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
 }
