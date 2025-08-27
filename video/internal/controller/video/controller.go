@@ -3,7 +3,7 @@ package video
 import (
 	"context"
 	"errors"
-	conversionmodel "ffmpeg/wrapper/conversion/pkg/model"
+	conversionmodel "ffmpeg/wrapper/compression/pkg/model"
 	metadatamodel "ffmpeg/wrapper/metadata/pkg/model"
 	"ffmpeg/wrapper/video/internal/gateway"
 	"ffmpeg/wrapper/video/pkg/model"

@@ -1,7 +1,7 @@
 package http
 
 import (
-	"ffmpeg/wrapper/conversion/internal/controller/ffmpeg"
+	"ffmpeg/wrapper/compression/internal/controller/ffmpeg"
 	"net/http"
 	"strconv"
 )

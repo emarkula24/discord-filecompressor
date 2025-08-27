@@ -3,29 +3,35 @@ package http
 import (
 	"context"
 	"encoding/json"
-	"ffmpeg/wrapper/conversion/pkg/model"
+	"ffmpeg/wrapper/compression/pkg/model"
+	"ffmpeg/wrapper/pkg/discovery"
 	"ffmpeg/wrapper/video/internal/gateway"
 	"fmt"
+	"log"
+	"math/rand"
 	"net/http"
 )
 
 // Gateway defines an HTTP gateway for a rating service.
 
 type Gateway struct {
-	addr string
+	registry discovery.Registry
 }
 
 // New creates a new HTTP gateway for a rating service.
 
-func New(addr string) *Gateway {
-
-	return &Gateway{addr}
-
+func New(registry discovery.Registry) *Gateway {
+	return &Gateway{registry}
 }
 
 func (g *Gateway) GetCompressedVideo(ctx context.Context, duration model.Duration, videoLink model.VideoLink) (string, error) {
-
-	req, err := http.NewRequest(http.MethodGet, g.addr+"/compress", nil)
+	addrs, err := g.registry.ServiceAddresses(ctx, "compression")
+	if err != nil {
+		return "", err
+	}
+	url := "http://" + addrs[rand.Intn(len(addrs))] + "/compress"
+	log.Printf("%s", "Calling metadata service. Request: GET "+url)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return "", err
 	}
