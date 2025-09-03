@@ -23,7 +23,7 @@ func (h *Handler) Handle(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-		err = h.ctrl.Compress(req.Context(), durationFloat, videoLink)
+		_, err = h.ctrl.Compress(req.Context(), durationFloat, videoLink)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}

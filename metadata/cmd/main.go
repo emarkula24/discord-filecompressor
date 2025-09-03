@@ -2,15 +2,21 @@ package main
 
 import (
 	"context"
-	metadata "ffmpeg/wrapper/metadata/internal/controller/meta-data"
-	httphandler "ffmpeg/wrapper/metadata/internal/handler/http"
+	metadata "ffmpeg/wrapper/metadata/internal/controller/metadata"
 	"ffmpeg/wrapper/pkg/discovery"
 	"ffmpeg/wrapper/pkg/discovery/consul"
+	"ffmpeg/wrapper/src/gen"
 	"flag"
 	"fmt"
-	"log"
-	"net/http"
+	"net"
 	"time"
+
+	// httphandler "ffmpeg/wrapper/metadata/internal/handler/http"
+	grpchandler "ffmpeg/wrapper/metadata/internal/handler/grpc"
+	"log"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 const serviceName = "metadata"
@@ -38,10 +44,18 @@ func main() {
 		}
 	}()
 	defer registry.Deregister(ctx, instanceID, serviceName)
+
 	ctrl := metadata.New()
-	h := httphandler.New(ctrl)
-	http.Handle("/metadata", http.HandlerFunc(h.GetMetadata))
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
+	h := grpchandler.New(ctrl)
+	addr := fmt.Sprintf("localhost:%d", port)
+	lis, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Fatalf("failed to listen %v", err)
+	}
+	srv := grpc.NewServer()
+	reflection.Register(srv)
+	gen.RegisterMetadataServiceServer(srv, h)
+	if err := srv.Serve(lis); err != nil {
 		panic(err)
 	}
 }

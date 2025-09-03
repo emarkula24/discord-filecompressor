@@ -2,12 +2,16 @@ package ffmpeg
 
 import (
 	"context"
+	"errors"
+	"ffmpeg/wrapper/compression/pkg/model"
 	"fmt"
 	"math/rand"
 	"os"
 	"os/exec"
 	"strconv"
 )
+
+var ErrNotFound = errors.New("not found")
 
 type Controller struct {
 }
@@ -16,7 +20,7 @@ func New() *Controller {
 	return &Controller{}
 }
 
-func (c *Controller) Compress(ctx context.Context, duration float64, input string) error {
+func (c *Controller) Compress(ctx context.Context, duration float64, input string) (*model.CompressedLink, error) {
 	target_video := 8.3 //megabytes
 	target_audio := 1.2 // megabytes
 	// get the video from db here
@@ -42,7 +46,7 @@ func (c *Controller) Compress(ctx context.Context, duration float64, input strin
 
 	cmd1.Stderr = os.Stderr
 	if err := cmd1.Run(); err != nil {
-		return fmt.Errorf("error running ffmpeg pass 1 %w", err)
+		return nil, fmt.Errorf("error running ffmpeg pass 1 %w", err)
 	}
 
 	// PASS 2
@@ -60,10 +64,12 @@ func (c *Controller) Compress(ctx context.Context, duration float64, input strin
 
 	cmd2.Stderr = os.Stderr
 	if err := cmd2.Run(); err != nil {
-		return fmt.Errorf("error running ffmpeg pass 2 %w", err)
+		return nil, fmt.Errorf("error running ffmpeg pass 2 %w", err)
 	}
 	// upload the video here, return link to it if possible
-	return nil
+	v := "link to the uploaded videofile."
+	a := model.CompressedLink(v)
+	return &a, nil
 }
 
 func CalculateBitrates(duration float64, targetVideo, targetAudio float64) (float64, float64) {

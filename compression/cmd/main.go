@@ -5,13 +5,17 @@ import (
 	"ffmpeg/wrapper/compression/internal/controller/ffmpeg"
 	"ffmpeg/wrapper/pkg/discovery"
 	"ffmpeg/wrapper/pkg/discovery/consul"
+	"ffmpeg/wrapper/src/gen"
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
+	"net"
 	"time"
 
-	httphandler "ffmpeg/wrapper/compression/internal/handler/http"
+	grpchandler "ffmpeg/wrapper/compression/internal/handler/grpc"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 const serviceName = "compression"
@@ -40,10 +44,16 @@ func main() {
 	}()
 	defer registry.Deregister(ctx, instanceID, serviceName)
 	ctrl := ffmpeg.New()
-	h := httphandler.New(ctrl)
-	http.Handle("/compress", http.HandlerFunc(h.Handle))
-	if err := http.ListenAndServe(fmt.Sprintf("%d", port), nil); err != nil {
+	h := grpchandler.New(ctrl)
+	addr := fmt.Sprintf("localhost:%d", port)
+	lis, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	srv := grpc.NewServer()
+	reflection.Register(srv)
+	gen.RegisterCompressionServiceServer(srv, h)
+	if err := srv.Serve(lis); err != nil {
 		panic(err)
 	}
-
 }

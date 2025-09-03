@@ -13,13 +13,11 @@ import (
 )
 
 // Gateway defines an HTTP gateway for a rating service.
-
 type Gateway struct {
 	registry discovery.Registry
 }
 
 // New creates a new HTTP gateway for a rating service.
-
 func New(registry discovery.Registry) *Gateway {
 	return &Gateway{registry}
 }

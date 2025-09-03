@@ -16,7 +16,6 @@ type Metadata struct {
 
 type Tags struct {
 	CompatibleBrands string `json:"compatible_brands"`
-	Encoder          string `json:"encoder"`
 	MajorBrand       string `json:"major_brand"`
 	MinorVersion     string `json:"minor_version"`
 }
