@@ -6,14 +6,13 @@ import (
 	"ffmpeg/wrapper/pkg/discovery/consul"
 	"ffmpeg/wrapper/src/gen"
 	"ffmpeg/wrapper/video/internal/controller/video"
-	compressiongateway "ffmpeg/wrapper/video/internal/gateway/compression/http"
-	metadatagateway "ffmpeg/wrapper/video/internal/gateway/metadata/http"
+	compressiongateway "ffmpeg/wrapper/video/internal/gateway/compression/grpc"
+	metadatagateway "ffmpeg/wrapper/video/internal/gateway/metadata/grpc"
 	"flag"
 	"fmt"
 	"net"
 	"time"
 
-	// httphandler "ffmpeg/wrapper/video/internal/handler/http"
 	grpchandler "ffmpeg/wrapper/video/internal/handler/grpc"
 
 	"log"
@@ -48,25 +47,20 @@ func main() {
 		}
 	}()
 	defer registry.Deregister(ctx, instanceID, serviceName)
-	// defer registry.Deregister(ctx, "video")
+
 	metadataGateway := metadatagateway.New(registry)
 	compressionGateway := compressiongateway.New(registry)
 	ctrl := video.New(compressionGateway, metadataGateway)
-	h := grpchandler.New(ctrl)
-	addr := fmt.Sprintf("localhost:%d", port)
-	lis, err := net.Listen("tcp", addr)
+
+	grpcAddr := fmt.Sprintf("localhost:%d", port)
+	lis, err := net.Listen("tcp", grpcAddr)
 	if err != nil {
 		panic(err)
 	}
-	srv := grpc.NewServer()
-	reflection.Register(srv)
-	gen.RegisterVideoServiceServer(srv, h)
-	if err := srv.Serve(lis); err != nil {
+	grpcServer := grpc.NewServer()
+	reflection.Register(grpcServer)
+	gen.RegisterVideoServiceServer(grpcServer, grpchandler.New(ctrl))
+	if err := grpcServer.Serve(lis); err != nil {
 		panic(err)
 	}
 }
-
-// http.Handle("/video", http.HandlerFunc(h.GetCompressedVideoDetails))
-// if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
-// 	panic(err)
-// }

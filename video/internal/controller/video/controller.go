@@ -5,6 +5,7 @@ import (
 	"errors"
 	conversionmodel "ffmpeg/wrapper/compression/pkg/model"
 	metadatamodel "ffmpeg/wrapper/metadata/pkg/model"
+	"ffmpeg/wrapper/src/gen"
 	"ffmpeg/wrapper/video/internal/gateway"
 	"ffmpeg/wrapper/video/pkg/model"
 )
@@ -18,6 +19,7 @@ type compressionGateway interface {
 }
 type metadataGateway interface {
 	Get(ctx context.Context, path string) (*metadatamodel.Metadata, error)
+	GetPresignedURL(ctx context.Context, r *gen.GetUploadURLRequest) (*gen.GetUploadURLResponse, error)
 }
 
 // Controller defines a video service controller.
@@ -32,9 +34,7 @@ func New(compressionGateway compressionGateway, metadataGateway metadataGateway)
 
 }
 
-// Get returns the movie details including the aggregated
-// rating and movie metadata.
-// Get returns the movie details including the aggregated rating and movie metadat
+// Get returns the movie details including the aggregated rating and movie metadata
 func (c *Controller) Get(ctx context.Context, path string) (*model.ConvertedVideo, error) {
 
 	metadata, err := c.metadataGateway.Get(ctx, path)
@@ -59,4 +59,7 @@ func (c *Controller) Get(ctx context.Context, path string) (*model.ConvertedVide
 
 	return details, nil
 
+}
+func (c *Controller) GetUploadURL(ctx context.Context, req *gen.GetUploadURLRequest) (*gen.GetUploadURLResponse, error) {
+	return c.metadataGateway.GetPresignedURL(ctx, req)
 }

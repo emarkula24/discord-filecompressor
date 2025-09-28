@@ -1,5 +1,7 @@
 package model
 
+import v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+
 type Metadata struct {
 	Filename       string `json:"filename"`
 	NbStreams      int    `json:"nb_streams"`
@@ -18,4 +20,11 @@ type Tags struct {
 	CompatibleBrands string `json:"compatible_brands"`
 	MajorBrand       string `json:"major_brand"`
 	MinorVersion     string `json:"minor_version"`
+}
+
+type UploadURL struct {
+	State        string
+	JobID        int64                    // corresponds to JobId in proto
+	PresignedURL *v4.PresignedHTTPRequest // corresponds to PresignedUrl in proto
+	ObjectKey    string                   // corresponds to ObjectKey in proto
 }

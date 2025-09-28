@@ -34,3 +34,17 @@ func (g *Gateway) Get(ctx context.Context, path string) (*model.Metadata, error)
 	return model.MetadataFromProto(resp.Metadata), nil
 
 }
+
+func (g *Gateway) GetPresignedURL(ctx context.Context, req *gen.GetUploadURLRequest) (*gen.GetUploadURLResponse, error) {
+	conn, err := grpcutil.ServiceConnection(ctx, "metadata", g.registry)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	client := gen.NewVideoServiceClient(conn)
+	resp, err := client.GetUploadURL(ctx, &gen.GetUploadURLRequest{Filename: req.Filename})
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}

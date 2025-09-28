@@ -18,7 +18,7 @@ func New(ctrl *metadata.Controller) *Handler {
 func (h *Handler) GetMetadata(w http.ResponseWriter, req *http.Request) {
 	path := req.URL.Query().Get("path")
 	ctx := req.Context()
-	data, err := h.svc.Get(ctx, path)
+	data, err := h.svc.GetMetadata(ctx, path)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

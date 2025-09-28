@@ -15,6 +15,11 @@ import (
 	grpchandler "ffmpeg/wrapper/metadata/internal/handler/grpc"
 	"log"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/awsdocs/aws-doc-sdk-examples/gov2/s3/actions"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -44,8 +49,22 @@ func main() {
 		}
 	}()
 	defer registry.Deregister(ctx, instanceID, serviceName)
+	//TODO return the values from secrets here
 
-	ctrl := metadata.New()
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKeyId, accessKey, "")),
+		config.WithRegion("auto"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountId))
+	})
+	presignClient := s3.NewPresignClient(client)
+	presigner := actions.Presigner{PresignClient: presignClient}
+	ctrl := metadata.New(&presigner)
 	h := grpchandler.New(ctrl)
 	addr := fmt.Sprintf("localhost:%d", port)
 	lis, err := net.Listen("tcp", addr)
@@ -57,5 +76,8 @@ func main() {
 	gen.RegisterMetadataServiceServer(srv, h)
 	if err := srv.Serve(lis); err != nil {
 		panic(err)
+	}
+	if err != nil {
+		log.Fatal(err)
 	}
 }

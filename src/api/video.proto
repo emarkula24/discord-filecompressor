@@ -9,9 +9,7 @@ message GetCompressionRequest {
   string videolink = 1;
   string duration = 2;
 }
-message GetCompressionResponse {
-  string path = 1;
-}
+message GetCompressionResponse { string path = 1; }
 
 message Tags {
   string compatible_brands = 1;
@@ -37,21 +35,40 @@ message Metadata {
 service MetadataService {
   rpc GetMetadata(GetMetadataRequest) returns (GetMetadataResponse);
 }
-message GetMetadataRequest {
-  string path = 1;
-}
-message GetMetadataResponse {
-  Metadata metadata = 1;
-}
+message GetMetadataRequest { string path = 1; }
+message GetMetadataResponse { Metadata metadata = 1; }
 
 service VideoService {
   rpc GetVideoDetails(GetVideoDetailsRequest) returns (GetVideoDetailsResponse);
+  rpc GetUploadURL(GetUploadURLRequest) returns (GetUploadURLResponse);
+  rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse);
 }
 
-message GetVideoDetailsRequest {
-  string path = 1;
-}
+message GetVideoDetailsRequest { string path = 1; }
 message GetVideoDetailsResponse {
   string link = 1;
   Metadata oldMetadata = 2;
+}
+message PresignedRequest {
+    string method = 1;                // GET, PUT, etc.
+    string url = 2;                   // the full URL
+    map<string, string> headers = 3;  // headers
+
+}
+message GetUploadURLRequest {
+  string filename = 1; }
+
+message GetUploadURLResponse {
+  int64 job_id = 1;
+  PresignedRequest presigned_url = 2;
+  string object_key = 3;
+}
+
+message GetJobStatusRequest {
+  int64 job_id = 1;
+}
+message GetJobStatusResponse {
+  int64 job_id = 1;
+  string status = 2;
+  PresignedRequest compressed_presigned_url = 3;
 }
