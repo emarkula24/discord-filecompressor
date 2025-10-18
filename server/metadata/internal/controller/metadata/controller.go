@@ -8,20 +8,22 @@ import (
 	"ffmpeg/wrapper/metadata/pkg/model"
 	"fmt"
 	"hash/fnv"
+	"os"
 	"time"
 
-	"github.com/awsdocs/aws-doc-sdk-examples/gov2/s3/actions"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gopkg.in/vansante/go-ffprobe.v2"
 )
 
-var bucketName = "compressor-g"
+var bucketName = os.Getenv("bucketname")
 var ErrNotFound = errors.New("not found")
 
 type Controller struct {
-	presigner *actions.Presigner
+	presigner *s3.PresignClient
 }
 
-func New(presn *actions.Presigner) *Controller {
+func New(presn *s3.PresignClient) *Controller {
 	return &Controller{
 		presigner: presn,
 	}
@@ -56,10 +58,17 @@ func (c *Controller) GetMetadata(ctx context.Context, path string) (*model.Metad
 }
 func (c *Controller) GetURL(ctx context.Context, filename string) (*model.UploadURL, error) {
 	objectKey := fmt.Sprintf("%s_%s", filename, time.Now().Format("20060102T150405"))
-	url, err := c.presigner.PutObject(ctx, bucketName, filename, 60)
+	url, err := c.presigner.PresignPutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(objectKey),
+		ContentType: aws.String("video/mp4"),
+	})
+
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("Presigned URL:", url.URL)
+	fmt.Println("HTTP method signed:", url.Method)
 	upload := &model.UploadURL{
 		JobID:        GenerateObjectKeyInt64Random(filename),
 		PresignedURL: url,

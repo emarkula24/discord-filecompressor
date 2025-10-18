@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"os"
 	"time"
 
 	// httphandler "ffmpeg/wrapper/metadata/internal/handler/http"
@@ -19,7 +20,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/awsdocs/aws-doc-sdk-examples/gov2/s3/actions"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -50,9 +50,9 @@ func main() {
 	}()
 	defer registry.Deregister(ctx, instanceID, serviceName)
 
-	var accountId = "ac704c26fe6c33902adaf1301c9cf006"
-	var accessKeyId = "75522d5c3fb6e75fd08f54653f4dc0b3"
-	var accessKey = "d45783acec00cf9ff22118b84a44c8da5a46b09ce01d9b3823cfa81c922bca42"
+	var accountId = os.Getenv("accountId")
+	var accessKeyId = os.Getenv("accessKeyId")
+	var accessKey = os.Getenv("secretKey")
 
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKeyId, accessKey, "")),
@@ -64,10 +64,12 @@ func main() {
 
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.BaseEndpoint = aws.String(fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountId))
+		o.UsePathStyle = true
 	})
+
 	presignClient := s3.NewPresignClient(client)
-	presigner := actions.Presigner{PresignClient: presignClient}
-	ctrl := metadata.New(&presigner)
+
+	ctrl := metadata.New(presignClient)
 	h := grpchandler.New(ctrl)
 	addr := fmt.Sprintf("metadata:%d", port)
 	lis, err := net.Listen("tcp", addr)
