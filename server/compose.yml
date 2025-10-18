@@ -1,0 +1,79 @@
+
+
+
+services:
+  consul:
+    image: hashicorp/consul
+    container_name: service-discovery
+    command: agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    networks:
+      - appnet
+  gateway:
+    build:
+      context: .
+      dockerfile: services.dockerfile
+      args:
+        SERVICE_DIR: browser-gateway/cmd
+    ports:
+      - "8085:8085"
+    restart: always
+    env_file:
+      - secrets.env
+    depends_on:
+      - consul
+    networks:
+      - appnet
+    
+  metadata:
+    build:
+      context: .
+      dockerfile: services.dockerfile
+      args:
+        SERVICE_DIR: metadata/cmd
+    ports:
+      - "8082:8082"
+    env_file:
+      - secrets.env
+    restart: always
+    depends_on:
+      - consul
+    networks:
+      - appnet
+  compression:
+    build:
+      context: .
+      dockerfile: services.dockerfile
+      args:
+        SERVICE_DIR: compression/cmd
+    ports:
+      - "8081:8081"
+    env_file:
+      - secrets.env
+    restart: always
+    depends_on:
+      - consul
+    networks:
+      - appnet
+  video:
+    build:
+      context: .
+      dockerfile: services.dockerfile
+      args:
+        SERVICE_DIR: video/cmd
+    ports:
+      - "8083:8083"
+    env_file:
+      - secrets.env
+    restart: always
+    depends_on:
+      - consul
+    networks:
+      - appnet
+networks:
+  appnet:
+    driver: bridge
+    name: appnet
+    
