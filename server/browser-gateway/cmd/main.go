@@ -12,9 +12,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/rs/cors"
+	"github.com/segmentio/kafka-go"
 )
 
 const serviceName = "browser"
@@ -48,13 +50,21 @@ func main() {
 	}
 	defer conn.Close()
 
+	reader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:   []string{os.Getenv("kafkaBroker")},
+		Topic:     "compression-job",
+		Partition: 0,
+		MaxBytes:  10e6,
+	})
+
 	ctrl := controller.NewVideoGatewayController(gen.NewVideoServiceClient(conn))
-	h := handler.NewHandler(ctrl)
+	h := handler.NewHandler(ctrl, reader)
 
 	mux := http.NewServeMux()
 
 	mux.Handle("/upload", http.HandlerFunc(h.PostUploadURL))
 	mux.Handle("/jobs/status", http.HandlerFunc(h.GetJobStatus))
+	mux.Handle("/jobs/upload", http.HandlerFunc(h.PostUploadStatus))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://127.0.0.1:5173", "http://localhost:5173"},

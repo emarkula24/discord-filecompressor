@@ -6,6 +6,7 @@ import (
 	"ffmpeg/wrapper/pkg/discovery"
 	"ffmpeg/wrapper/pkg/discovery/grpcutil"
 	"ffmpeg/wrapper/src/gen"
+	"strconv"
 )
 
 // Gateway defines an gRPC gateway for a rating service.
@@ -27,7 +28,7 @@ func (g *Gateway) GetCompressedVideo(ctx context.Context, duration model.Duratio
 	}
 	defer conn.Close()
 	client := gen.NewCompressionServiceClient(conn)
-	resp, err := client.GetCompression(ctx, &gen.GetCompressionRequest{Videolink: string(videoLink), Duration: string(duration)})
+	resp, err := client.GetCompression(ctx, &gen.GetCompressionRequest{Videolink: string(videoLink), Duration: strconv.FormatFloat(float64(duration), 'f', -1, 64)})
 	if err != nil {
 		return "", err
 	}

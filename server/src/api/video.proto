@@ -34,6 +34,7 @@ message Metadata {
 service MetadataService {
   rpc GetMetadata(GetMetadataRequest) returns (GetMetadataResponse);
   rpc GetUploadURL(GetUploadURLRequest) returns (GetUploadURLResponse);
+  rpc GetCompressionJob(GetCompressionJobRequest) returns (GetCompressionJobResponse);
 }
 message GetMetadataRequest { string path = 1; }
 message GetMetadataResponse { Metadata metadata = 1; }
@@ -42,6 +43,7 @@ service VideoService {
   rpc GetVideoDetails(GetVideoDetailsRequest) returns (GetVideoDetailsResponse);
   rpc GetUploadURL(GetUploadURLRequest) returns (GetUploadURLResponse);
   rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse);
+  rpc GetCompressionJob(GetCompressionJobRequest) returns (GetCompressionJobResponse);
 }
 
 message GetVideoDetailsRequest { string path = 1; }
@@ -55,6 +57,16 @@ message PresignedRequest {
     map<string, string> headers = 3;  // headers
 
 }
+
+message GetCompressionJobResponse {
+  int64 jobId = 1;
+  string status = 2;
+}
+message GetCompressionJobRequest {
+  int64 job_id = 1;
+  string object_key = 2; 
+}
+
 message GetUploadURLRequest {
   string filename = 1; }
 

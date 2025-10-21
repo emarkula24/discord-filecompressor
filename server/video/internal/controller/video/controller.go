@@ -8,6 +8,8 @@ import (
 	"ffmpeg/wrapper/src/gen"
 	"ffmpeg/wrapper/video/internal/gateway"
 	"ffmpeg/wrapper/video/pkg/model"
+	"log"
+	"strconv"
 )
 
 // ErrNotFound is returned when the video metadata is not
@@ -20,6 +22,7 @@ type compressionGateway interface {
 type metadataGateway interface {
 	Get(ctx context.Context, path string) (*metadatamodel.Metadata, error)
 	GetPresignedURL(ctx context.Context, r *gen.GetUploadURLRequest) (*gen.GetUploadURLResponse, error)
+	GetCompressionJob(ctx context.Context, r *gen.GetCompressionJobRequest) (*gen.GetCompressionJobResponse, error)
 }
 
 // Controller defines a video service controller.
@@ -44,8 +47,12 @@ func (c *Controller) Get(ctx context.Context, path string) (*model.ConvertedVide
 		return nil, err
 	}
 	details := &model.ConvertedVideo{OldMetadata: *metadata}
-
-	convertedVideoLink, err := c.compressionGateway.GetCompressedVideo(ctx, conversionmodel.Duration(metadata.Duration), conversionmodel.VideoLink(path))
+	durationFloat, err := strconv.ParseFloat(metadata.Duration, 64)
+	if err != nil {
+		log.Printf("failed to parse duration: %v", err)
+		return nil, err
+	}
+	convertedVideoLink, err := c.compressionGateway.GetCompressedVideo(ctx, conversionmodel.Duration(durationFloat), conversionmodel.VideoLink(path))
 
 	if err != nil && !errors.Is(err, gateway.ErrNotFound) {
 		// Just proceed in this case, it's ok not to have videos yet.
@@ -62,4 +69,8 @@ func (c *Controller) Get(ctx context.Context, path string) (*model.ConvertedVide
 }
 func (c *Controller) GetUploadURL(ctx context.Context, req *gen.GetUploadURLRequest) (*gen.GetUploadURLResponse, error) {
 	return c.metadataGateway.GetPresignedURL(ctx, req)
+}
+
+func (c *Controller) GetCompressionJob(ctx context.Context, req *gen.GetCompressionJobRequest) (*gen.GetCompressionJobResponse, error) {
+	return c.metadataGateway.GetCompressionJob(ctx, req)
 }

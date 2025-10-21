@@ -121,8 +121,9 @@ var CompressionService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	MetadataService_GetMetadata_FullMethodName  = "/MetadataService/GetMetadata"
-	MetadataService_GetUploadURL_FullMethodName = "/MetadataService/GetUploadURL"
+	MetadataService_GetMetadata_FullMethodName       = "/MetadataService/GetMetadata"
+	MetadataService_GetUploadURL_FullMethodName      = "/MetadataService/GetUploadURL"
+	MetadataService_GetCompressionJob_FullMethodName = "/MetadataService/GetCompressionJob"
 )
 
 // MetadataServiceClient is the client API for MetadataService service.
@@ -131,6 +132,7 @@ const (
 type MetadataServiceClient interface {
 	GetMetadata(ctx context.Context, in *GetMetadataRequest, opts ...grpc.CallOption) (*GetMetadataResponse, error)
 	GetUploadURL(ctx context.Context, in *GetUploadURLRequest, opts ...grpc.CallOption) (*GetUploadURLResponse, error)
+	GetCompressionJob(ctx context.Context, in *GetCompressionJobRequest, opts ...grpc.CallOption) (*GetCompressionJobResponse, error)
 }
 
 type metadataServiceClient struct {
@@ -161,12 +163,23 @@ func (c *metadataServiceClient) GetUploadURL(ctx context.Context, in *GetUploadU
 	return out, nil
 }
 
+func (c *metadataServiceClient) GetCompressionJob(ctx context.Context, in *GetCompressionJobRequest, opts ...grpc.CallOption) (*GetCompressionJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCompressionJobResponse)
+	err := c.cc.Invoke(ctx, MetadataService_GetCompressionJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MetadataServiceServer is the server API for MetadataService service.
 // All implementations must embed UnimplementedMetadataServiceServer
 // for forward compatibility.
 type MetadataServiceServer interface {
 	GetMetadata(context.Context, *GetMetadataRequest) (*GetMetadataResponse, error)
 	GetUploadURL(context.Context, *GetUploadURLRequest) (*GetUploadURLResponse, error)
+	GetCompressionJob(context.Context, *GetCompressionJobRequest) (*GetCompressionJobResponse, error)
 	mustEmbedUnimplementedMetadataServiceServer()
 }
 
@@ -182,6 +195,9 @@ func (UnimplementedMetadataServiceServer) GetMetadata(context.Context, *GetMetad
 }
 func (UnimplementedMetadataServiceServer) GetUploadURL(context.Context, *GetUploadURLRequest) (*GetUploadURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUploadURL not implemented")
+}
+func (UnimplementedMetadataServiceServer) GetCompressionJob(context.Context, *GetCompressionJobRequest) (*GetCompressionJobResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCompressionJob not implemented")
 }
 func (UnimplementedMetadataServiceServer) mustEmbedUnimplementedMetadataServiceServer() {}
 func (UnimplementedMetadataServiceServer) testEmbeddedByValue()                         {}
@@ -240,6 +256,24 @@ func _MetadataService_GetUploadURL_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MetadataService_GetCompressionJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCompressionJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetadataServiceServer).GetCompressionJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MetadataService_GetCompressionJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetadataServiceServer).GetCompressionJob(ctx, req.(*GetCompressionJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MetadataService_ServiceDesc is the grpc.ServiceDesc for MetadataService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -255,15 +289,20 @@ var MetadataService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetUploadURL",
 			Handler:    _MetadataService_GetUploadURL_Handler,
 		},
+		{
+			MethodName: "GetCompressionJob",
+			Handler:    _MetadataService_GetCompressionJob_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "video.proto",
 }
 
 const (
-	VideoService_GetVideoDetails_FullMethodName = "/VideoService/GetVideoDetails"
-	VideoService_GetUploadURL_FullMethodName    = "/VideoService/GetUploadURL"
-	VideoService_GetJobStatus_FullMethodName    = "/VideoService/GetJobStatus"
+	VideoService_GetVideoDetails_FullMethodName   = "/VideoService/GetVideoDetails"
+	VideoService_GetUploadURL_FullMethodName      = "/VideoService/GetUploadURL"
+	VideoService_GetJobStatus_FullMethodName      = "/VideoService/GetJobStatus"
+	VideoService_GetCompressionJob_FullMethodName = "/VideoService/GetCompressionJob"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -273,6 +312,7 @@ type VideoServiceClient interface {
 	GetVideoDetails(ctx context.Context, in *GetVideoDetailsRequest, opts ...grpc.CallOption) (*GetVideoDetailsResponse, error)
 	GetUploadURL(ctx context.Context, in *GetUploadURLRequest, opts ...grpc.CallOption) (*GetUploadURLResponse, error)
 	GetJobStatus(ctx context.Context, in *GetJobStatusRequest, opts ...grpc.CallOption) (*GetJobStatusResponse, error)
+	GetCompressionJob(ctx context.Context, in *GetCompressionJobRequest, opts ...grpc.CallOption) (*GetCompressionJobResponse, error)
 }
 
 type videoServiceClient struct {
@@ -313,6 +353,16 @@ func (c *videoServiceClient) GetJobStatus(ctx context.Context, in *GetJobStatusR
 	return out, nil
 }
 
+func (c *videoServiceClient) GetCompressionJob(ctx context.Context, in *GetCompressionJobRequest, opts ...grpc.CallOption) (*GetCompressionJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCompressionJobResponse)
+	err := c.cc.Invoke(ctx, VideoService_GetCompressionJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -320,6 +370,7 @@ type VideoServiceServer interface {
 	GetVideoDetails(context.Context, *GetVideoDetailsRequest) (*GetVideoDetailsResponse, error)
 	GetUploadURL(context.Context, *GetUploadURLRequest) (*GetUploadURLResponse, error)
 	GetJobStatus(context.Context, *GetJobStatusRequest) (*GetJobStatusResponse, error)
+	GetCompressionJob(context.Context, *GetCompressionJobRequest) (*GetCompressionJobResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -338,6 +389,9 @@ func (UnimplementedVideoServiceServer) GetUploadURL(context.Context, *GetUploadU
 }
 func (UnimplementedVideoServiceServer) GetJobStatus(context.Context, *GetJobStatusRequest) (*GetJobStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetJobStatus not implemented")
+}
+func (UnimplementedVideoServiceServer) GetCompressionJob(context.Context, *GetCompressionJobRequest) (*GetCompressionJobResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCompressionJob not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -414,6 +468,24 @@ func _VideoService_GetJobStatus_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VideoService_GetCompressionJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCompressionJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).GetCompressionJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_GetCompressionJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).GetCompressionJob(ctx, req.(*GetCompressionJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -432,6 +504,10 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetJobStatus",
 			Handler:    _VideoService_GetJobStatus_Handler,
+		},
+		{
+			MethodName: "GetCompressionJob",
+			Handler:    _VideoService_GetCompressionJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

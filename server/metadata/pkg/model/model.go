@@ -27,3 +27,9 @@ type UploadURL struct {
 	PresignedURL *v4.PresignedHTTPRequest // corresponds to PresignedUrl in proto
 	ObjectKey    string                   // corresponds to ObjectKey in proto
 }
+
+type CompressionEvent struct {
+	JobID     int64    `json:"job_id"`
+	ObjectKey string   `json:"object_key"`
+	Metadata  Metadata `json:"metadata"`
+}

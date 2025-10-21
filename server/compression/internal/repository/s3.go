@@ -94,7 +94,8 @@ func (p S3) DownloadObject(ctx context.Context, bucketName string, objectKey str
 
 	defer result.Body.Close()
 
-	file, err := os.Create(objectKey)
+	tempFilePath := "/tmp/" + filename
+	file, err := os.Create(tempFilePath)
 	if err != nil {
 		log.Printf("Couldn't create file %v. Here's why: %v\n", objectKey, err)
 		return "", err
@@ -109,7 +110,7 @@ func (p S3) DownloadObject(ctx context.Context, bucketName string, objectKey str
 		log.Printf("failed to write file")
 		return "", err
 	}
-	return file.Name(), nil
+	return tempFilePath, nil
 }
 
 func (p S3) DownloadPartialObject(ctx context.Context, bucketName string, objectKey string, filename string, byteLimit int64) (string, error) {
@@ -150,4 +151,30 @@ func (p S3) DownloadPartialObject(ctx context.Context, bucketName string, object
 		return "", err
 	}
 	return filePath, nil
+}
+
+func (p S3) UploadObject(ctx context.Context, bucketName string, objectKey string, filename string) error {
+
+	f, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("failed to open file %s: %w", filename, err)
+	}
+	result, err := p.S3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectKey),
+		Body:   f,
+	})
+
+	if err != nil {
+		var noKey *types.NoSuchKey
+		if errors.As(err, &noKey) {
+			log.Printf("Can't get object %s from bucket %s. No such key exists.\n", objectKey, bucketName)
+			err = noKey
+		} else {
+			log.Printf("Couldn't get object %v:%v. Here's why: %v\n", bucketName, objectKey, err)
+		}
+		return err
+	}
+	log.Println(result)
+	return nil
 }

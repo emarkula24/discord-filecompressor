@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	metadata "ffmpeg/wrapper/metadata/internal/controller/metadata"
+	"ffmpeg/wrapper/metadata/internal/repository"
 	"ffmpeg/wrapper/pkg/discovery"
 	"ffmpeg/wrapper/pkg/discovery/consul"
 	"ffmpeg/wrapper/src/gen"
@@ -20,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/segmentio/kafka-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -62,14 +64,24 @@ func main() {
 		log.Fatal(err)
 	}
 
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.BaseEndpoint = aws.String(fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountId))
 		o.UsePathStyle = true
 	})
 
-	presignClient := s3.NewPresignClient(client)
+	presignClient := s3.NewPresignClient(s3Client)
+	repository := repository.New(presignClient, s3Client)
 
-	ctrl := metadata.New(presignClient)
+	// conn, err := kafka.DialLeader(ctx, "tcp", os.Getenv("kafkaBroker"), "compression-job", 0)
+	kafkaWriter := &kafka.Writer{
+		Addr:        kafka.TCP(os.Getenv("kafkaBroker")),
+		Topic:       "compression-job",
+		Balancer:    &kafka.LeastBytes{},
+		Logger:      kafka.LoggerFunc(logf),
+		ErrorLogger: kafka.LoggerFunc(logf),
+	}
+
+	ctrl := metadata.New(repository, kafkaWriter)
 	h := grpchandler.New(ctrl)
 	addr := fmt.Sprintf("metadata:%d", port)
 	lis, err := net.Listen("tcp", addr)
@@ -85,4 +97,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func logf(msg string, a ...any) {
+	fmt.Printf(msg, a...)
+	fmt.Println()
 }

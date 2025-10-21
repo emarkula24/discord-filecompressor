@@ -553,6 +553,110 @@ func (x *PresignedRequest) GetHeaders() map[string]string {
 	return nil
 }
 
+type GetCompressionJobResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         int64                  `protobuf:"varint,1,opt,name=jobId,proto3" json:"jobId,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCompressionJobResponse) Reset() {
+	*x = GetCompressionJobResponse{}
+	mi := &file_video_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCompressionJobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCompressionJobResponse) ProtoMessage() {}
+
+func (x *GetCompressionJobResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_video_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCompressionJobResponse.ProtoReflect.Descriptor instead.
+func (*GetCompressionJobResponse) Descriptor() ([]byte, []int) {
+	return file_video_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetCompressionJobResponse) GetJobId() int64 {
+	if x != nil {
+		return x.JobId
+	}
+	return 0
+}
+
+func (x *GetCompressionJobResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type GetCompressionJobRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         int64                  `protobuf:"varint,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	ObjectKey     string                 `protobuf:"bytes,2,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCompressionJobRequest) Reset() {
+	*x = GetCompressionJobRequest{}
+	mi := &file_video_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCompressionJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCompressionJobRequest) ProtoMessage() {}
+
+func (x *GetCompressionJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_video_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCompressionJobRequest.ProtoReflect.Descriptor instead.
+func (*GetCompressionJobRequest) Descriptor() ([]byte, []int) {
+	return file_video_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetCompressionJobRequest) GetJobId() int64 {
+	if x != nil {
+		return x.JobId
+	}
+	return 0
+}
+
+func (x *GetCompressionJobRequest) GetObjectKey() string {
+	if x != nil {
+		return x.ObjectKey
+	}
+	return ""
+}
+
 type GetUploadURLRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Filename      string                 `protobuf:"bytes,1,opt,name=filename,proto3" json:"filename,omitempty"`
@@ -562,7 +666,7 @@ type GetUploadURLRequest struct {
 
 func (x *GetUploadURLRequest) Reset() {
 	*x = GetUploadURLRequest{}
-	mi := &file_video_proto_msgTypes[9]
+	mi := &file_video_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -574,7 +678,7 @@ func (x *GetUploadURLRequest) String() string {
 func (*GetUploadURLRequest) ProtoMessage() {}
 
 func (x *GetUploadURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_video_proto_msgTypes[9]
+	mi := &file_video_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -587,7 +691,7 @@ func (x *GetUploadURLRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUploadURLRequest.ProtoReflect.Descriptor instead.
 func (*GetUploadURLRequest) Descriptor() ([]byte, []int) {
-	return file_video_proto_rawDescGZIP(), []int{9}
+	return file_video_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetUploadURLRequest) GetFilename() string {
@@ -608,7 +712,7 @@ type GetUploadURLResponse struct {
 
 func (x *GetUploadURLResponse) Reset() {
 	*x = GetUploadURLResponse{}
-	mi := &file_video_proto_msgTypes[10]
+	mi := &file_video_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -620,7 +724,7 @@ func (x *GetUploadURLResponse) String() string {
 func (*GetUploadURLResponse) ProtoMessage() {}
 
 func (x *GetUploadURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_video_proto_msgTypes[10]
+	mi := &file_video_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -633,7 +737,7 @@ func (x *GetUploadURLResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUploadURLResponse.ProtoReflect.Descriptor instead.
 func (*GetUploadURLResponse) Descriptor() ([]byte, []int) {
-	return file_video_proto_rawDescGZIP(), []int{10}
+	return file_video_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetUploadURLResponse) GetJobId() int64 {
@@ -666,7 +770,7 @@ type GetJobStatusRequest struct {
 
 func (x *GetJobStatusRequest) Reset() {
 	*x = GetJobStatusRequest{}
-	mi := &file_video_proto_msgTypes[11]
+	mi := &file_video_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -678,7 +782,7 @@ func (x *GetJobStatusRequest) String() string {
 func (*GetJobStatusRequest) ProtoMessage() {}
 
 func (x *GetJobStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_video_proto_msgTypes[11]
+	mi := &file_video_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -691,7 +795,7 @@ func (x *GetJobStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetJobStatusRequest) Descriptor() ([]byte, []int) {
-	return file_video_proto_rawDescGZIP(), []int{11}
+	return file_video_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetJobStatusRequest) GetJobId() int64 {
@@ -712,7 +816,7 @@ type GetJobStatusResponse struct {
 
 func (x *GetJobStatusResponse) Reset() {
 	*x = GetJobStatusResponse{}
-	mi := &file_video_proto_msgTypes[12]
+	mi := &file_video_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -724,7 +828,7 @@ func (x *GetJobStatusResponse) String() string {
 func (*GetJobStatusResponse) ProtoMessage() {}
 
 func (x *GetJobStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_video_proto_msgTypes[12]
+	mi := &file_video_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -737,7 +841,7 @@ func (x *GetJobStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetJobStatusResponse) Descriptor() ([]byte, []int) {
-	return file_video_proto_rawDescGZIP(), []int{12}
+	return file_video_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetJobStatusResponse) GetJobId() int64 {
@@ -810,7 +914,14 @@ const file_video_proto_rawDesc = "" +
 	"\aheaders\x18\x03 \x03(\v2\x1e.PresignedRequest.HeadersEntryR\aheaders\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"1\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"I\n" +
+	"\x19GetCompressionJobResponse\x12\x14\n" +
+	"\x05jobId\x18\x01 \x01(\x03R\x05jobId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"P\n" +
+	"\x18GetCompressionJobRequest\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\x12\x1d\n" +
+	"\n" +
+	"object_key\x18\x02 \x01(\tR\tobjectKey\"1\n" +
 	"\x13GetUploadURLRequest\x12\x1a\n" +
 	"\bfilename\x18\x01 \x01(\tR\bfilename\"\x84\x01\n" +
 	"\x14GetUploadURLResponse\x12\x15\n" +
@@ -825,14 +936,16 @@ const file_video_proto_rawDesc = "" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12K\n" +
 	"\x18compressed_presigned_url\x18\x03 \x01(\v2\x11.PresignedRequestR\x16compressedPresignedUrl2W\n" +
 	"\x12CompressionService\x12A\n" +
-	"\x0eGetCompression\x12\x16.GetCompressionRequest\x1a\x17.GetCompressionResponse2\x88\x01\n" +
+	"\x0eGetCompression\x12\x16.GetCompressionRequest\x1a\x17.GetCompressionResponse2\xd4\x01\n" +
 	"\x0fMetadataService\x128\n" +
 	"\vGetMetadata\x12\x13.GetMetadataRequest\x1a\x14.GetMetadataResponse\x12;\n" +
-	"\fGetUploadURL\x12\x14.GetUploadURLRequest\x1a\x15.GetUploadURLResponse2\xce\x01\n" +
+	"\fGetUploadURL\x12\x14.GetUploadURLRequest\x1a\x15.GetUploadURLResponse\x12J\n" +
+	"\x11GetCompressionJob\x12\x19.GetCompressionJobRequest\x1a\x1a.GetCompressionJobResponse2\x9a\x02\n" +
 	"\fVideoService\x12D\n" +
 	"\x0fGetVideoDetails\x12\x17.GetVideoDetailsRequest\x1a\x18.GetVideoDetailsResponse\x12;\n" +
 	"\fGetUploadURL\x12\x14.GetUploadURLRequest\x1a\x15.GetUploadURLResponse\x12;\n" +
-	"\fGetJobStatus\x12\x14.GetJobStatusRequest\x1a\x15.GetJobStatusResponseB\x06Z\x04/genb\x06proto3"
+	"\fGetJobStatus\x12\x14.GetJobStatusRequest\x1a\x15.GetJobStatusResponse\x12J\n" +
+	"\x11GetCompressionJob\x12\x19.GetCompressionJobRequest\x1a\x1a.GetCompressionJobResponseB\x06Z\x04/genb\x06proto3"
 
 var (
 	file_video_proto_rawDescOnce sync.Once
@@ -846,44 +959,50 @@ func file_video_proto_rawDescGZIP() []byte {
 	return file_video_proto_rawDescData
 }
 
-var file_video_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_video_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_video_proto_goTypes = []any{
-	(*GetCompressionRequest)(nil),   // 0: GetCompressionRequest
-	(*GetCompressionResponse)(nil),  // 1: GetCompressionResponse
-	(*Tags)(nil),                    // 2: Tags
-	(*Metadata)(nil),                // 3: Metadata
-	(*GetMetadataRequest)(nil),      // 4: GetMetadataRequest
-	(*GetMetadataResponse)(nil),     // 5: GetMetadataResponse
-	(*GetVideoDetailsRequest)(nil),  // 6: GetVideoDetailsRequest
-	(*GetVideoDetailsResponse)(nil), // 7: GetVideoDetailsResponse
-	(*PresignedRequest)(nil),        // 8: PresignedRequest
-	(*GetUploadURLRequest)(nil),     // 9: GetUploadURLRequest
-	(*GetUploadURLResponse)(nil),    // 10: GetUploadURLResponse
-	(*GetJobStatusRequest)(nil),     // 11: GetJobStatusRequest
-	(*GetJobStatusResponse)(nil),    // 12: GetJobStatusResponse
-	nil,                             // 13: PresignedRequest.HeadersEntry
+	(*GetCompressionRequest)(nil),     // 0: GetCompressionRequest
+	(*GetCompressionResponse)(nil),    // 1: GetCompressionResponse
+	(*Tags)(nil),                      // 2: Tags
+	(*Metadata)(nil),                  // 3: Metadata
+	(*GetMetadataRequest)(nil),        // 4: GetMetadataRequest
+	(*GetMetadataResponse)(nil),       // 5: GetMetadataResponse
+	(*GetVideoDetailsRequest)(nil),    // 6: GetVideoDetailsRequest
+	(*GetVideoDetailsResponse)(nil),   // 7: GetVideoDetailsResponse
+	(*PresignedRequest)(nil),          // 8: PresignedRequest
+	(*GetCompressionJobResponse)(nil), // 9: GetCompressionJobResponse
+	(*GetCompressionJobRequest)(nil),  // 10: GetCompressionJobRequest
+	(*GetUploadURLRequest)(nil),       // 11: GetUploadURLRequest
+	(*GetUploadURLResponse)(nil),      // 12: GetUploadURLResponse
+	(*GetJobStatusRequest)(nil),       // 13: GetJobStatusRequest
+	(*GetJobStatusResponse)(nil),      // 14: GetJobStatusResponse
+	nil,                               // 15: PresignedRequest.HeadersEntry
 }
 var file_video_proto_depIdxs = []int32{
 	2,  // 0: Metadata.tags:type_name -> Tags
 	3,  // 1: GetMetadataResponse.metadata:type_name -> Metadata
 	3,  // 2: GetVideoDetailsResponse.oldMetadata:type_name -> Metadata
-	13, // 3: PresignedRequest.headers:type_name -> PresignedRequest.HeadersEntry
+	15, // 3: PresignedRequest.headers:type_name -> PresignedRequest.HeadersEntry
 	8,  // 4: GetUploadURLResponse.presigned_url:type_name -> PresignedRequest
 	8,  // 5: GetJobStatusResponse.compressed_presigned_url:type_name -> PresignedRequest
 	0,  // 6: CompressionService.GetCompression:input_type -> GetCompressionRequest
 	4,  // 7: MetadataService.GetMetadata:input_type -> GetMetadataRequest
-	9,  // 8: MetadataService.GetUploadURL:input_type -> GetUploadURLRequest
-	6,  // 9: VideoService.GetVideoDetails:input_type -> GetVideoDetailsRequest
-	9,  // 10: VideoService.GetUploadURL:input_type -> GetUploadURLRequest
-	11, // 11: VideoService.GetJobStatus:input_type -> GetJobStatusRequest
-	1,  // 12: CompressionService.GetCompression:output_type -> GetCompressionResponse
-	5,  // 13: MetadataService.GetMetadata:output_type -> GetMetadataResponse
-	10, // 14: MetadataService.GetUploadURL:output_type -> GetUploadURLResponse
-	7,  // 15: VideoService.GetVideoDetails:output_type -> GetVideoDetailsResponse
-	10, // 16: VideoService.GetUploadURL:output_type -> GetUploadURLResponse
-	12, // 17: VideoService.GetJobStatus:output_type -> GetJobStatusResponse
-	12, // [12:18] is the sub-list for method output_type
-	6,  // [6:12] is the sub-list for method input_type
+	11, // 8: MetadataService.GetUploadURL:input_type -> GetUploadURLRequest
+	10, // 9: MetadataService.GetCompressionJob:input_type -> GetCompressionJobRequest
+	6,  // 10: VideoService.GetVideoDetails:input_type -> GetVideoDetailsRequest
+	11, // 11: VideoService.GetUploadURL:input_type -> GetUploadURLRequest
+	13, // 12: VideoService.GetJobStatus:input_type -> GetJobStatusRequest
+	10, // 13: VideoService.GetCompressionJob:input_type -> GetCompressionJobRequest
+	1,  // 14: CompressionService.GetCompression:output_type -> GetCompressionResponse
+	5,  // 15: MetadataService.GetMetadata:output_type -> GetMetadataResponse
+	12, // 16: MetadataService.GetUploadURL:output_type -> GetUploadURLResponse
+	9,  // 17: MetadataService.GetCompressionJob:output_type -> GetCompressionJobResponse
+	7,  // 18: VideoService.GetVideoDetails:output_type -> GetVideoDetailsResponse
+	12, // 19: VideoService.GetUploadURL:output_type -> GetUploadURLResponse
+	14, // 20: VideoService.GetJobStatus:output_type -> GetJobStatusResponse
+	9,  // 21: VideoService.GetCompressionJob:output_type -> GetCompressionJobResponse
+	14, // [14:22] is the sub-list for method output_type
+	6,  // [6:14] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
 	6,  // [6:6] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name
@@ -900,7 +1019,7 @@ func file_video_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_video_proto_rawDesc), len(file_video_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   3,
 		},

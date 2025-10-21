@@ -41,3 +41,7 @@ func (h *Handler) GetVideoDetails(ctx context.Context, req *gen.GetVideoDetailsR
 func (h *Handler) GetUploadURL(ctx context.Context, req *gen.GetUploadURLRequest) (*gen.GetUploadURLResponse, error) {
 	return h.svc.GetUploadURL(ctx, req)
 }
+
+func (h *Handler) GetCompressionJob(ctx context.Context, req *gen.GetCompressionJobRequest) (*gen.GetCompressionJobResponse, error) {
+	return h.svc.GetCompressionJob(ctx, req)
+}

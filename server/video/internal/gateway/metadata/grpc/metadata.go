@@ -48,3 +48,17 @@ func (g *Gateway) GetPresignedURL(ctx context.Context, req *gen.GetUploadURLRequ
 	}
 	return resp, nil
 }
+
+func (g *Gateway) GetCompressionJob(ctx context.Context, req *gen.GetCompressionJobRequest) (*gen.GetCompressionJobResponse, error) {
+	conn, err := grpcutil.ServiceConnection(ctx, "metadata", g.registry)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	client := gen.NewMetadataServiceClient(conn)
+	resp, err := client.GetCompressionJob(ctx, &gen.GetCompressionJobRequest{JobId: req.JobId, ObjectKey: req.ObjectKey})
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}

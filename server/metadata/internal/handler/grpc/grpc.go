@@ -6,6 +6,7 @@ import (
 	metadata "ffmpeg/wrapper/metadata/internal/controller/metadata"
 	"ffmpeg/wrapper/metadata/pkg/model"
 	"ffmpeg/wrapper/src/gen"
+	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,6 +23,24 @@ func New(ctrl *metadata.Controller) *Handler {
 	return &Handler{
 		svc: ctrl,
 	}
+}
+func (h *Handler) GetCompressionJob(ctx context.Context, req *gen.GetCompressionJobRequest) (*gen.GetCompressionJobResponse, error) {
+	if req == nil || req.ObjectKey == "" {
+		return nil, status.Error(codes.InvalidArgument, "nil req or empty objectkey")
+	}
+	m, err := h.svc.GetMetadata(ctx, req.ObjectKey)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
+	}
+	fmt.Println(m)
+	err = h.svc.PublishCompressionEvent(ctx, req.JobId, req.ObjectKey, m)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
+	}
+	return &gen.GetCompressionJobResponse{
+		JobId:  req.JobId,
+		Status: "started",
+	}, nil
 }
 
 func (h *Handler) GetMetadata(ctx context.Context, req *gen.GetMetadataRequest) (*gen.GetMetadataResponse, error) {
@@ -46,6 +65,7 @@ func (h *Handler) GetUploadURL(ctx context.Context, req *gen.GetUploadURLRequest
 	} else if err != nil {
 		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
+
 	return &gen.GetUploadURLResponse{
 		JobId:        url.JobID,
 		PresignedUrl: model.PresignedToProto(url.PresignedURL),
