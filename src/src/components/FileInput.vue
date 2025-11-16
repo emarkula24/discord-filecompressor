@@ -19,7 +19,11 @@
 
 <script setup lang="ts">
 
-import { ref } from 'vue'
+import { ref} from 'vue'
+
+const emit = defineEmits<{
+    (e: 'download-ready', url: string): void
+}>()
 
 interface PreURL {
     method: string;
@@ -110,6 +114,11 @@ const getJobStatus = async (job_id: number) => {
         })
         const result = await res.json()
         console.log(result)
+
+        if (result.event_type === "success" && result.presigned_download_url?.url) {
+        emit('download-ready', result.presigned_download_url.url)
+        }
+
     } catch(error) {
         console.log(error)
     }

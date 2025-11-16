@@ -1,11 +1,19 @@
-<script setup lang="ts">
-import FileInput from './components/FileInput.vue';
-
-</script>
 
 <template>
-  <FileInput />
+  <FileInput  @download-ready="handleDownloadUrl"/>
+  <VideoPlayer v-if="downloadUrl" :video-url="downloadUrl" />
 </template>
+
+<script setup lang="ts">
+import VideoPlayer from './components/FileDownload.vue'
+import FileInput from './components/FileInput.vue';
+import { ref } from 'vue';
+const downloadUrl = ref('')
+function handleDownloadUrl(url: string) {
+  downloadUrl.value = url
+  console.log(downloadUrl)
+}
+</script>
 
 <style scoped>
 .logo {

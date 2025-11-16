@@ -29,6 +29,8 @@ services:
       - "8600:8600/udp"
     networks:
       - appnet
+    volumes:
+      - .:/usr/src/app
   gateway:
     build:
       context: .
@@ -44,6 +46,8 @@ services:
       - consul
     networks:
       - appnet
+    volumes:
+      - .:/usr/src/app
     
   metadata:
     build:
@@ -60,6 +64,8 @@ services:
       - consul
     networks:
       - appnet
+    volumes:
+      - .:/usr/src/app
   compression:
     build:
       context: .
@@ -75,6 +81,8 @@ services:
       - consul
     networks:
       - appnet
+    volumes:
+      - .:/usr/src/app
   video:
     build:
       context: .
@@ -90,8 +98,12 @@ services:
       - consul
     networks:
       - appnet
+    volumes:
+      - .:/usr/src/app
 networks:
   appnet:
     driver: bridge
     name: appnet
+volumes:
+  shared:
     

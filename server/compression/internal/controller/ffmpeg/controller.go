@@ -37,8 +37,8 @@ func New(reader *kafka.Reader, writer *kafka.Writer, repository repository.S3) *
 var bucketName = os.Getenv("bucketname")
 
 func (c *Controller) Compress(ctx context.Context, duration float64, compressedKey string, objectKey string, filename string) (*v4.PresignedHTTPRequest, error) {
-	target_video := 8.3 //megabytes
-	target_audio := 1.2 // megabytes
+	target_video := 8.0 //megabytes
+	target_audio := 1.0 // megabytes
 	// get the video from db here
 	videoBitrate, audioBitrate := CalculateBitrates(duration, target_video, target_audio)
 
@@ -56,7 +56,7 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 		"ffmpeg",
 		"-y",
 		"-i", filePath,
-		"-c:v", "libx264",
+		"-c:v", "libx265",
 		"-preset", "medium",
 		"-b:v", videoBitrateStr,
 		"-pass", "1", "-passlogfile", "/tmp/passlog",
@@ -76,7 +76,7 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 	cmd2 := exec.Command(
 		"ffmpeg",
 		"-i", filePath,
-		"-c:v", "libx264",
+		"-c:v", "libx265",
 		"-preset", "medium",
 		"-b:v", videoBitrateStr,
 		"-pass", "2", "-passlogfile", "/tmp/passlog",

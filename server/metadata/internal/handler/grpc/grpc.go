@@ -28,7 +28,7 @@ func (h *Handler) GetCompressionJob(ctx context.Context, req *gen.GetCompression
 	if req == nil || req.ObjectKey == "" {
 		return nil, status.Error(codes.InvalidArgument, "nil req or empty objectkey")
 	}
-	m, err := h.svc.GetMetadata(ctx, req.ObjectKey)
+	m, err := h.svc.GetThumbnail(ctx, req.ObjectKey)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}

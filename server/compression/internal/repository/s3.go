@@ -77,8 +77,10 @@ func (presigner S3) DeleteObject(ctx context.Context, bucketName string, objectK
 
 func (p S3) DownloadObject(ctx context.Context, bucketName string, objectKey string, filename string) (string, error) {
 	result, err := p.S3Client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(objectKey),
+		Bucket:                     aws.String(bucketName),
+		Key:                        aws.String(objectKey),
+		ResponseContentType:        aws.String("video/mp4"),
+		ResponseContentDisposition: aws.String("attachment; filename=\"" + filename + "\""),
 	})
 
 	if err != nil {
@@ -160,9 +162,11 @@ func (p S3) UploadObject(ctx context.Context, bucketName string, objectKey strin
 		return fmt.Errorf("failed to open file %s: %w", filename, err)
 	}
 	result, err := p.S3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(objectKey),
-		Body:   f,
+		Bucket:             aws.String(bucketName),
+		Key:                aws.String(objectKey),
+		Body:               f,
+		ContentType:        aws.String("video/mp4"),
+		ContentDisposition: aws.String("attachment; filename=\"" + filename + "\""),
 	})
 
 	if err != nil {
