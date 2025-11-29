@@ -96,7 +96,7 @@ func (c *Controller) GetThumbnail(ctx context.Context, objectKey string) (string
 	return thumbNailPath, nil
 }
 func (c *Controller) GetURL(ctx context.Context, filename string) (*model.UploadURL, error) {
-	objectKey := fmt.Sprintf("%s_%s", filename, time.Now().Format("20060102T150405"))
+	objectKey := fmt.Sprintf("%s_%s", time.Now().Format("20060102T150405"), filename)
 	// url, err := c.presigner.PresignPutObject(ctx, &s3.PutObjectInput{
 	// 	Bucket:      aws.String(bucketName),
 	// 	Key:         aws.String(objectKey),
