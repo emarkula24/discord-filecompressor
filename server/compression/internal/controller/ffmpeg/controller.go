@@ -51,6 +51,7 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 	}
 	outputFilename := "/tmp/" + fmt.Sprintf("compressed_%s.mp4", filename)
 	// PASS 1
+	passlog := fmt.Sprintf("/tmp/passlog_%s", filename)
 	log.Println(outputFilename, filePath, filename)
 	cmd1 := exec.Command(
 		"ffmpeg",
@@ -59,7 +60,7 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 		"-c:v", "libx265",
 		"-preset", "medium",
 		"-b:v", videoBitrateStr,
-		"-pass", "1", "-passlogfile", "/tmp/passlog",
+		"-pass", "1", "-passlogfile", passlog,
 		"-c:a", "aac",
 		"-b:a", audioBitrateStr,
 		"-f", "mp4", "/dev/null",
@@ -79,7 +80,7 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 		"-c:v", "libx265",
 		"-preset", "medium",
 		"-b:v", videoBitrateStr,
-		"-pass", "2", "-passlogfile", "/tmp/passlog",
+		"-pass", "2", "-passlogfile", passlog,
 		"-c:a", "aac",
 		"-b:a", audioBitrateStr,
 		outputFilename,
@@ -126,7 +127,6 @@ func RandStringBytes(n int) string {
 
 func (c *Controller) ConsumeCompressionEvent(ctx context.Context) {
 
-	c.kafkaReader.SetOffset(kafka.LastOffset)
 	for {
 		m, err := c.kafkaReader.ReadMessage(ctx)
 		if err != nil {
@@ -152,15 +152,18 @@ func (c *Controller) ConsumeCompressionEvent(ctx context.Context) {
 		}
 
 		compressedKey := fmt.Sprintf("%s_compressed", event.ObjectKey)
+
 		presignedDownloadURL, err := c.Compress(ctx, durationFloat, compressedKey, event.ObjectKey, event.ObjectKey)
 
 		if err != nil {
 			log.Printf("compression failed: %v", err)
-			_ = c.PublishCompressionResultEvent(ctx, compressionModel.CompressionEventTypeFail, event.JobID, event.ObjectKey, compressedKey, nil)
+			_ = c.PublishCompressionResultEvent(ctx, compressionModel.CompressionEventTypeFail,
+				event.JobID, event.ObjectKey, compressedKey, nil)
 			continue
 		}
 
-		err = c.PublishCompressionResultEvent(ctx, compressionModel.CompressionEventTypeSuccess, event.JobID, event.ObjectKey, compressedKey, presignedDownloadURL)
+		err = c.PublishCompressionResultEvent(ctx, compressionModel.CompressionEventTypeSuccess,
+			event.JobID, event.ObjectKey, compressedKey, presignedDownloadURL)
 		if err != nil {
 			log.Printf("failed to publish compression result: %v", err)
 		}

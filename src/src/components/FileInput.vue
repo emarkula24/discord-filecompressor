@@ -18,7 +18,9 @@
         </div>
         <button type="button" @click="checkStatus">Check job status</button>
     </div>
-    
+    <div v-if="isProcessing">
+        <span class="loader"></span>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -47,13 +49,14 @@ const inputRef = ref<HTMLInputElement | null >(null)
 const label = ref<string>('')
 const url = import.meta.env.VITE_BACKEND_URL
 const errorMsg = ref<string>('') 
+const isProcessing = ref(false)
 
 function onFileChange(event: Event) {
     const target = event.target as HTMLInputElement
     file.value = target.files?.[0] || null
 }
 const fetchPresignedURL = async () => {
-    const minSize = 10485760 // 10 MB in bytes
+    const minSize = 1048576 // 10 MB in bytes
     const fileSize = file.value?.size || 0
     if (fileSize <= minSize) {
         errorMsg.value = "File is already small enough."
@@ -137,9 +140,12 @@ const getJobStatus = async (job_id: number) => {
         console.log(result)
 
         if (result.event_type === "success" && result.presigned_download_url?.url) {
-        emit('download-ready', result.presigned_download_url.url)
+            emit('download-ready', result.presigned_download_url.url)
+            isProcessing.value = false
         }
-
+        if (result.event_type === "processing") {
+            isProcessing.value = true
+        }
     } catch(error) {
         console.log(error)
         errorMsg.value = "File compression failed."
@@ -184,4 +190,15 @@ const checkStatus = () => {
 .file-input__submit {
     border: 1px;
 }
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #FFF;
+    border-bottom-color: #FF3D00;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+    }
+
 </style>

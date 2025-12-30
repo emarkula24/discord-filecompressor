@@ -15,8 +15,9 @@ type CompressionResultEvent struct {
 type CompressionEventType string
 
 const (
-	CompressionEventTypeSuccess = CompressionEventType("success")
-	CompressionEventTypeFail    = CompressionEventType("fail")
+	CompressionEventTypeSuccess    = CompressionEventType("success")
+	CompressionEventTypeFail       = CompressionEventType("fail")
+	CompressionEventTypeProcessing = CompressionEventType("processing")
 )
 
 type PresignedRequestPayload struct {
