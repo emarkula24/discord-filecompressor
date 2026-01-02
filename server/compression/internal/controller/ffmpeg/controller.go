@@ -39,7 +39,7 @@ var bucketName = os.Getenv("bucketname")
 func (c *Controller) Compress(ctx context.Context, duration float64, compressedKey string, objectKey string, filename string) (*v4.PresignedHTTPRequest, error) {
 	target_video := 8.0 //megabytes
 	target_audio := 1.0 // megabytes
-	// get the video from db here
+
 	videoBitrate, audioBitrate := CalculateBitrates(duration, target_video, target_audio)
 
 	videoBitrateStr := strconv.FormatFloat(videoBitrate, 'f', 0, 64)
@@ -51,16 +51,16 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 	}
 	outputFilename := "/tmp/" + fmt.Sprintf("compressed_%s.mp4", filename)
 	// PASS 1
-	passlog := fmt.Sprintf("/tmp/passlog_%s", filename)
+
 	log.Println(outputFilename, filePath, filename)
 	cmd1 := exec.Command(
 		"ffmpeg",
 		"-y",
 		"-i", filePath,
-		"-c:v", "libx265",
+		"-c:v", "libx264",
 		"-preset", "medium",
 		"-b:v", videoBitrateStr,
-		"-pass", "1", "-passlogfile", passlog,
+		"-pass", "1", "-passlogfile", "/tmp/passlog",
 		"-c:a", "aac",
 		"-b:a", audioBitrateStr,
 		"-f", "mp4", "/dev/null",
@@ -76,18 +76,18 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 
 	cmd2 := exec.Command(
 		"ffmpeg",
+		"-y",
 		"-i", filePath,
-		"-c:v", "libx265",
+		"-c:v", "libx264 ",
 		"-preset", "medium",
 		"-b:v", videoBitrateStr,
-		"-pass", "2", "-passlogfile", passlog,
+		"-pass", "2", "-passlogfile", "/tmp/passlog",
 		"-c:a", "aac",
 		"-b:a", audioBitrateStr,
 		outputFilename,
 	)
 	cmd2.Dir = "/tmp"
-	cmd2.Stderr = os.Stderr
-	cmd2.Stdout = os.Stdout
+
 	if err := cmd2.Run(); err != nil {
 		return nil, fmt.Errorf("error running ffmpeg pass 2 %w", err)
 	}
