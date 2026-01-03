@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	conversionmodel "ffmpeg/wrapper/compression/pkg/model"
+	"ffmpeg/wrapper/gen"
 	metadatamodel "ffmpeg/wrapper/metadata/pkg/model"
-	"ffmpeg/wrapper/src/gen"
 	"ffmpeg/wrapper/video/internal/gateway"
 	"ffmpeg/wrapper/video/pkg/model"
 	"log"
@@ -37,7 +37,7 @@ func New(compressionGateway compressionGateway, metadataGateway metadataGateway)
 
 }
 
-// Get returns the movie details including the aggregated rating and movie metadata
+// Get returns the video details including the aggregated rating and video metadata
 func (c *Controller) Get(ctx context.Context, path string) (*model.ConvertedVideo, error) {
 
 	metadata, err := c.metadataGateway.Get(ctx, path)

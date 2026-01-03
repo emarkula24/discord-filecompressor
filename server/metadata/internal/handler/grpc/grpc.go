@@ -3,9 +3,9 @@ package grpc
 import (
 	"context"
 	"errors"
+	"ffmpeg/wrapper/gen"
 	metadata "ffmpeg/wrapper/metadata/internal/controller/metadata"
 	"ffmpeg/wrapper/metadata/pkg/model"
-	"ffmpeg/wrapper/src/gen"
 	"fmt"
 
 	"google.golang.org/grpc/codes"

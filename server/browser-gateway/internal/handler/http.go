@@ -3,27 +3,36 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"ffmpeg/wrapper/browser-gateway/internal/controller"
+	"ffmpeg/wrapper/browser-gateway/internal/repository"
 	compressionModel "ffmpeg/wrapper/compression/pkg/model"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/segmentio/kafka-go"
 )
 
 type Handler struct {
 	ctrl        *controller.VideoGatewayController
 	kafkaReader *kafka.Reader
+	repo        repository.S3Actions
 }
 
-func NewHandler(ctrl *controller.VideoGatewayController, reader *kafka.Reader) *Handler {
+func NewHandler(ctrl *controller.VideoGatewayController, reader *kafka.Reader, repo repository.S3Actions) *Handler {
 	return &Handler{
 		ctrl:        ctrl,
 		kafkaReader: reader,
+		repo:        repo,
 	}
 }
+
+var bucketName = os.Getenv("bucketname")
 
 // POST /upload
 func (h *Handler) PostUploadURL(w http.ResponseWriter, r *http.Request) {
@@ -53,24 +62,46 @@ func (h *Handler) GetJobStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
 	h.kafkaReader.SetOffset(kafka.FirstOffset)
 	for {
 		m, err := h.kafkaReader.ReadMessage(ctx)
 		if err != nil {
+			if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+				json.NewEncoder(w).Encode(map[string]string{
+					"status": "processing",
+				})
+				return
+			}
+
 			log.Printf("kafka reading error: %v", err)
 			http.Error(w, "error reading Kafka message", http.StatusInternalServerError)
 			return
 		}
-
 		var result compressionModel.CompressionResultEvent
 		if err := json.Unmarshal(m.Value, &result); err != nil {
 			continue // skip malformed messages
 		}
 		if result.JobID == jobIDint && result.CompressionEventType != "" {
 			json.NewEncoder(w).Encode((result))
+
+			go func(expiry time.Time, objectKeys []string) {
+				log.Print(expiry, objectKeys)
+				duration := time.Until(expiry)
+				log.Print(duration)
+				if duration > 0 {
+					time.Sleep(duration)
+				}
+				objs := make([]types.ObjectIdentifier, 0, len(objectKeys))
+				for _, k := range objectKeys {
+					objs = append(objs, types.ObjectIdentifier{Key: aws.String(k)})
+				}
+				bgCtx := context.Background()
+				h.repo.DeleteObjects(bgCtx, bucketName, objs, false)
+			}(result.Expiry, []string{result.ObjectKey, result.CompressedKey})
+
 			return
 		}
 	}

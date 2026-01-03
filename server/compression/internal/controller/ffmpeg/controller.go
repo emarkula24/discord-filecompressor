@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/segmentio/kafka-go"
@@ -49,7 +50,7 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 	if err != nil {
 		return nil, fmt.Errorf("error downloading object from R2: %w", err)
 	}
-	outputFilename := "/tmp/" + fmt.Sprintf("compressed_%s.mp4", filename)
+	outputFilename := "/tmp/" + fmt.Sprintf("compressed_%s", filename)
 	// PASS 1
 
 	log.Println(outputFilename, filePath, filename)
@@ -78,7 +79,7 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 		"ffmpeg",
 		"-y",
 		"-i", filePath,
-		"-c:v", "libx264 ",
+		"-c:v", "libx264",
 		"-preset", "medium",
 		"-b:v", videoBitrateStr,
 		"-pass", "2", "-passlogfile", "/tmp/passlog",
@@ -87,7 +88,8 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 		outputFilename,
 	)
 	cmd2.Dir = "/tmp"
-
+	cmd2.Stderr = os.Stderr
+	cmd2.Stdout = os.Stdout
 	if err := cmd2.Run(); err != nil {
 		return nil, fmt.Errorf("error running ffmpeg pass 2 %w", err)
 	}
@@ -99,7 +101,7 @@ func (c *Controller) Compress(ctx context.Context, duration float64, compressedK
 	if err != nil {
 		return nil, fmt.Errorf("error uploading object to R2: %w", err)
 	}
-	presignedRequest, err := c.repo.GetObject(ctx, bucketName, compressedKey, 120)
+	presignedRequest, err := c.repo.GetObject(ctx, bucketName, compressedKey, 1800)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create presigned download url: %w", err)
 	}
@@ -151,19 +153,19 @@ func (c *Controller) ConsumeCompressionEvent(ctx context.Context) {
 			continue
 		}
 
-		compressedKey := fmt.Sprintf("%s_compressed", event.ObjectKey)
+		compressedKey := fmt.Sprintf("compressed_%s", event.ObjectKey)
 
 		presignedDownloadURL, err := c.Compress(ctx, durationFloat, compressedKey, event.ObjectKey, event.ObjectKey)
 
 		if err != nil {
 			log.Printf("compression failed: %v", err)
 			_ = c.PublishCompressionResultEvent(ctx, compressionModel.CompressionEventTypeFail,
-				event.JobID, event.ObjectKey, compressedKey, nil)
+				event.JobID, event.ObjectKey, compressedKey, nil, time.Time{})
 			continue
 		}
 
 		err = c.PublishCompressionResultEvent(ctx, compressionModel.CompressionEventTypeSuccess,
-			event.JobID, event.ObjectKey, compressedKey, presignedDownloadURL)
+			event.JobID, event.ObjectKey, compressedKey, presignedDownloadURL, getExpiry())
 		if err != nil {
 			log.Printf("failed to publish compression result: %v", err)
 		}
@@ -173,9 +175,13 @@ func (c *Controller) ConsumeCompressionEvent(ctx context.Context) {
 		log.Fatal("failed to close reader", err)
 	}
 }
-
+func getExpiry() time.Time {
+	current := time.Now()
+	expiry := current.Add(1800 * time.Second)
+	return expiry
+}
 func (c *Controller) PublishCompressionResultEvent(ctx context.Context, eventType compressionModel.CompressionEventType,
-	jobID int64, objecKey string, compressedKey string, presignedDownloadURL *v4.PresignedHTTPRequest) error {
+	jobID int64, objecKey string, compressedKey string, presignedDownloadURL *v4.PresignedHTTPRequest, expiry time.Time) error {
 
 	var presignedPayload *compressionModel.PresignedRequestPayload
 	if presignedDownloadURL != nil {
@@ -198,6 +204,7 @@ func (c *Controller) PublishCompressionResultEvent(ctx context.Context, eventTyp
 		ObjectKey:            objecKey,
 		CompressedKey:        compressedKey,
 		PresignedDownloadUrl: presignedPayload,
+		Expiry:               expiry,
 	}
 
 	if eventType == compressionModel.CompressionEventTypeFail {

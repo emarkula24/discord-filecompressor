@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"ffmpeg/wrapper/gen"
 	metadata "ffmpeg/wrapper/metadata/internal/controller/metadata"
 	"ffmpeg/wrapper/metadata/internal/repository"
 	"ffmpeg/wrapper/pkg/discovery"
 	"ffmpeg/wrapper/pkg/discovery/consul"
-	"ffmpeg/wrapper/src/gen"
 	"flag"
 	"fmt"
 	"net"

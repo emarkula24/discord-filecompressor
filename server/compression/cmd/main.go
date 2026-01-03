@@ -4,9 +4,9 @@ import (
 	"context"
 	"ffmpeg/wrapper/compression/internal/controller/ffmpeg"
 	"ffmpeg/wrapper/compression/internal/repository"
+	"ffmpeg/wrapper/gen"
 	"ffmpeg/wrapper/pkg/discovery"
 	"ffmpeg/wrapper/pkg/discovery/consul"
-	"ffmpeg/wrapper/src/gen"
 	"flag"
 	"fmt"
 	"log"
@@ -70,10 +70,11 @@ func main() {
 	presignClient := s3.NewPresignClient(s3Client)
 
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:   []string{os.Getenv("kafkaBroker")},
-		Topic:     "compression-job",
-		Partition: 0,
-		MaxBytes:  10e6,
+		Brokers:     []string{os.Getenv("kafkaBroker")},
+		Topic:       "compression-job",
+		GroupID:     "compression-worker",
+		MaxBytes:    10e6,
+		StartOffset: kafka.LastOffset,
 	})
 	writer := &kafka.Writer{
 		Addr:        kafka.TCP(os.Getenv("kafkaBroker")),

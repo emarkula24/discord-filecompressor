@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type Duration float64
 type VideoLink string
 type CompressedLink string
@@ -10,6 +12,7 @@ type CompressionResultEvent struct {
 	CompressedKey        string                   `json:"compressed_key"`
 	ObjectKey            string                   `json:"object_key"`
 	PresignedDownloadUrl *PresignedRequestPayload `json:"presigned_download_url"`
+	Expiry               time.Time                `json:"expiry_date"`
 }
 
 type CompressionEventType string

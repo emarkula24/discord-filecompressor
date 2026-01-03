@@ -2,7 +2,7 @@ package controller
 
 import (
 	"context"
-	"ffmpeg/wrapper/src/gen"
+	"ffmpeg/wrapper/gen"
 )
 
 type VideoGatewayController struct {

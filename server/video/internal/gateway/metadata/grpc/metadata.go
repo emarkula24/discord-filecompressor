@@ -2,10 +2,10 @@ package grpc
 
 import (
 	"context"
+	"ffmpeg/wrapper/gen"
+	"ffmpeg/wrapper/internal/grpcutil"
 	"ffmpeg/wrapper/metadata/pkg/model"
 	"ffmpeg/wrapper/pkg/discovery"
-	"ffmpeg/wrapper/pkg/discovery/grpcutil"
-	"ffmpeg/wrapper/src/gen"
 )
 
 // Gateway defines a movie metadata gRPC gateway.

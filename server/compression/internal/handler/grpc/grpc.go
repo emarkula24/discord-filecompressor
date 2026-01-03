@@ -2,7 +2,7 @@ package handler
 
 import (
 	"ffmpeg/wrapper/compression/internal/controller/ffmpeg"
-	"ffmpeg/wrapper/src/gen"
+	"ffmpeg/wrapper/gen"
 )
 
 type Handler struct {

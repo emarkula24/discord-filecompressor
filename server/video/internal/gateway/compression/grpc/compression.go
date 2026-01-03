@@ -3,9 +3,9 @@ package grpc
 import (
 	"context"
 	"ffmpeg/wrapper/compression/pkg/model"
+	"ffmpeg/wrapper/gen"
+	"ffmpeg/wrapper/internal/grpcutil"
 	"ffmpeg/wrapper/pkg/discovery"
-	"ffmpeg/wrapper/pkg/discovery/grpcutil"
-	"ffmpeg/wrapper/src/gen"
 	"strconv"
 )
 

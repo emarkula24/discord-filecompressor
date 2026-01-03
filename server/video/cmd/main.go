@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"ffmpeg/wrapper/gen"
 	"ffmpeg/wrapper/pkg/discovery"
 	"ffmpeg/wrapper/pkg/discovery/consul"
-	"ffmpeg/wrapper/src/gen"
 	"ffmpeg/wrapper/video/internal/controller/video"
 	compressiongateway "ffmpeg/wrapper/video/internal/gateway/compression/grpc"
 	metadatagateway "ffmpeg/wrapper/video/internal/gateway/metadata/grpc"

@@ -4,10 +4,11 @@ import (
 	"context"
 	"ffmpeg/wrapper/browser-gateway/internal/controller"
 	"ffmpeg/wrapper/browser-gateway/internal/handler"
+	"ffmpeg/wrapper/browser-gateway/internal/repository"
+	"ffmpeg/wrapper/gen"
+	"ffmpeg/wrapper/internal/grpcutil"
 	"ffmpeg/wrapper/pkg/discovery"
 	"ffmpeg/wrapper/pkg/discovery/consul"
-	"ffmpeg/wrapper/pkg/discovery/grpcutil"
-	"ffmpeg/wrapper/src/gen"
 	"flag"
 	"fmt"
 	"log"
@@ -15,6 +16,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/cors"
 	"github.com/segmentio/kafka-go"
 )
@@ -56,9 +61,25 @@ func main() {
 		Partition: 0,
 		MaxBytes:  10e6,
 	})
+	var accountId = os.Getenv("accountId")
+	var accessKeyId = os.Getenv("accessKeyId")
+	var accessKey = os.Getenv("secretKey")
 
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKeyId, accessKey, "")),
+		config.WithRegion("auto"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountId))
+		o.UsePathStyle = true
+	})
+
+	repo := repository.New(s3Client)
 	ctrl := controller.NewVideoGatewayController(gen.NewVideoServiceClient(conn))
-	h := handler.NewHandler(ctrl, reader)
+	h := handler.NewHandler(ctrl, reader, repo)
 
 	mux := http.NewServeMux()
 
