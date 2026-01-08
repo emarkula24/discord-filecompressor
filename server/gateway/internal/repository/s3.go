@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"go.opentelemetry.io/otel"
 )
 
 // S3Actions wraps S3 service actions.
@@ -23,8 +24,13 @@ func New(client *s3.Client) S3Actions {
 	}
 }
 
+const tracerID = "gateway-repository-s3"
+
 // DeleteObjects deletes a list of objects from a bucket.
 func (actor S3Actions) DeleteObjects(ctx context.Context, bucket string, objects []types.ObjectIdentifier, bypassGovernance bool) error {
+	_, span := otel.Tracer(tracerID).Start(ctx, "Repository/DeleteObjects")
+	defer span.End()
+
 	if len(objects) == 0 {
 		return nil
 	}

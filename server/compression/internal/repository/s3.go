@@ -13,6 +13,7 @@ import (
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"go.opentelemetry.io/otel"
 )
 
 // Presigner encapsulates the Amazon Simple Storage Service (Amazon S3) presign actions
@@ -31,10 +32,15 @@ func New(presingclient *s3.PresignClient, s3client *s3.Client) S3 {
 	}
 }
 
+const tracerID = "compression-repository-s3"
+
 // GetObject makes a presigned request that can be used to get an object from a bucket.
 // The presigned request is valid for the specified number of seconds.
 func (presigner S3) GetObject(
 	ctx context.Context, bucketName string, objectKey string, lifetimeSecs int64) (*v4.PresignedHTTPRequest, error) {
+
+	_, span := otel.Tracer(tracerID).Start(ctx, "Repository/GetObject")
+	defer span.End()
 	request, err := presigner.PresignClient.PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
@@ -51,6 +57,9 @@ func (presigner S3) GetObject(
 // PutObject makes a presigned request that can be used to put an object in a bucket.
 // The presigned request is valid for the specified number of seconds.
 func (p S3) PutObject(ctx context.Context, bucketname string, objectKey string, lifetimeSecs int64) (*v4.PresignedHTTPRequest, error) {
+	_, span := otel.Tracer(tracerID).Start(ctx, "Repository/PutObject")
+	defer span.End()
+
 	request, err := p.PresignClient.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(bucketname),
 		Key:         aws.String(objectKey),
@@ -65,6 +74,8 @@ func (p S3) PutObject(ctx context.Context, bucketname string, objectKey string, 
 
 // DeleteObject makes a presigned request that can be used to delete an object from a bucket.
 func (presigner S3) DeleteObject(ctx context.Context, bucketName string, objectKey string) (*v4.PresignedHTTPRequest, error) {
+	_, span := otel.Tracer(tracerID).Start(ctx, "Repository/DeleteObject")
+	defer span.End()
 	request, err := presigner.PresignClient.PresignDeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
@@ -156,7 +167,8 @@ func (p S3) DownloadPartialObject(ctx context.Context, bucketName string, object
 }
 
 func (p S3) UploadObject(ctx context.Context, bucketName string, objectKey string, filename string) error {
-
+	_, span := otel.Tracer(tracerID).Start(ctx, "Repository/UploadObject")
+	defer span.End()
 	f, err := os.Open(filename)
 	if err != nil {
 		return fmt.Errorf("failed to open file %s: %w", filename, err)

@@ -9,7 +9,6 @@ import (
 	"ffmpeg/wrapper/pkg/discovery/consul"
 	"ffmpeg/wrapper/pkg/discovery/tracing"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"time"
@@ -45,7 +44,7 @@ func main() {
 		logger.Fatal("Failed to parse configuration", zap.Error(err))
 	}
 	port := cfg.API.Port
-	log.Printf("Starting the compression service on port %d", port)
+	logger.Info("Starting the compression service on port %v", zap.Int("port:", port))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -112,6 +111,7 @@ func main() {
 		Logger:      kafka.LoggerFunc(logf),
 		ErrorLogger: kafka.LoggerFunc(logf),
 	}
+
 	repo := repository.New(presignClient, s3Client)
 	ctrl := ffmpeg.New(reader, writer, repo)
 
