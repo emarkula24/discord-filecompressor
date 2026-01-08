@@ -7,7 +7,7 @@ import (
 	"ffmpeg/wrapper/gen"
 	"ffmpeg/wrapper/pkg/discovery"
 	"ffmpeg/wrapper/pkg/discovery/consul"
-	"flag"
+	"ffmpeg/wrapper/pkg/discovery/tracing"
 	"fmt"
 	"log"
 	"net"
@@ -21,22 +21,51 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/segmentio/kafka-go"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"gopkg.in/yaml.v3"
 )
 
 const serviceName = "compression"
 
 func main() {
-	var port int
-	flag.IntVar(&port, "port", 8081, "API handler port")
-	flag.Parse()
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	f, err := os.Open("../configs/default.yaml")
+	if err != nil {
+		logger.Fatal("Failed to open configuration", zap.Error(err))
+	}
+	var cfg configuration
+	if err := yaml.NewDecoder(f).Decode(&cfg); err != nil {
+		logger.Fatal("Failed to parse configuration", zap.Error(err))
+	}
+	port := cfg.API.Port
 	log.Printf("Starting the compression service on port %d", port)
-	registry, err := consul.NewRegistry("consul:8500")
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	tp, err := tracing.NewJaegerProvider(ctx, cfg.Jaeger.URL, serviceName)
+	if err != nil {
+		logger.Fatal("Failed to initialize Jaeger provider", zap.Error(err))
+	}
+	defer func() {
+		if err := tp.Shutdown(ctx); err != nil {
+			logger.Fatal("Failed to shut down Jaeger prodiver", zap.Error(err))
+		}
+	}()
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+
+	registry, err := consul.NewRegistry(cfg.ServiceDiscovery.Consul.Address)
 	if err != nil {
 		panic(err)
 	}
-	ctx := context.Background()
 	instanceID := discovery.GenerateInstanceID(serviceName)
 	if err := registry.Register(ctx, instanceID, serviceName, fmt.Sprintf("compression:%d", port)); err != nil {
 		panic(err)
@@ -44,7 +73,7 @@ func main() {
 	go func() {
 		for {
 			if err := registry.ReportHealthyState(instanceID, serviceName); err != nil {
-				log.Println("Failed to report healthy state: " + err.Error())
+				logger.Error("Failed to report healthy state", zap.Error(err))
 			}
 			time.Sleep(1 * time.Second)
 		}
@@ -55,15 +84,15 @@ func main() {
 	var accessKeyId = os.Getenv("accessKeyId")
 	var accessKey = os.Getenv("secretKey")
 
-	cfg, err := config.LoadDefaultConfig(ctx,
+	AWScfg, err := config.LoadDefaultConfig(ctx,
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKeyId, accessKey, "")),
 		config.WithRegion("auto"),
 	)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("Failed to load AWS s3 config", zap.Error(err))
 	}
 
-	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+	s3Client := s3.NewFromConfig(AWScfg, func(o *s3.Options) {
 		o.BaseEndpoint = aws.String(fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountId))
 		o.UsePathStyle = true
 	})
@@ -85,14 +114,16 @@ func main() {
 	}
 	repo := repository.New(presignClient, s3Client)
 	ctrl := ffmpeg.New(reader, writer, repo)
+
 	go ctrl.ConsumeCompressionEvent(ctx)
+
 	h := grpchandler.New(ctrl)
 	addr := fmt.Sprintf("0.0.0.0:%d", port)
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		logger.Fatal("Failed to listen", zap.Error(err))
 	}
-	srv := grpc.NewServer()
+	srv := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
 	reflection.Register(srv)
 	gen.RegisterCompressionServiceServer(srv, h)
 	if err := srv.Serve(lis); err != nil {

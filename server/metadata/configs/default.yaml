@@ -1,0 +1,7 @@
+api:
+  port: 8083
+serviceDiscovery:
+  consul:
+    address: consul:8500
+jaeger:
+  url: jaeger:4317

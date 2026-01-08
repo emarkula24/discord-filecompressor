@@ -2,6 +2,18 @@
 
 
 services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "4317:4317"  
+      - "4318:4318"
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+    networks:
+      - appnet
   kafka:
     image: wurstmeister/kafka:latest
     container_name: kafka
@@ -36,14 +48,15 @@ services:
       context: .
       dockerfile: services.dockerfile
       args:
-        SERVICE_DIR: browser-gateway/cmd
+        SERVICE_DIR: gateway/cmd
     ports:
-      - "8085:8085"
+      - "8081:8081"
     restart: always
     env_file:
       - secrets.env
     depends_on:
       - consul
+      - jaeger
     networks:
       - appnet
     volumes:
@@ -56,12 +69,13 @@ services:
       args:
         SERVICE_DIR: metadata/cmd
     ports:
-      - "8082:8082"
+      - "8083:8083"
     env_file:
       - secrets.env
     restart: always
     depends_on:
       - consul
+      - jaeger
     networks:
       - appnet
     volumes:
@@ -73,12 +87,13 @@ services:
       args:
         SERVICE_DIR: compression/cmd
     ports:
-      - "8081:8081"
+      - "8082:8082"
     env_file:
       - secrets.env
     restart: always
     depends_on:
       - consul
+      - jaeger
     networks:
       - appnet
     volumes:
@@ -90,12 +105,13 @@ services:
       args:
         SERVICE_DIR: video/cmd
     ports:
-      - "8083:8083"
+      - "8084:8084"
     env_file:
       - secrets.env
     restart: always
     depends_on:
       - consul
+      - jaeger
     networks:
       - appnet
     volumes:

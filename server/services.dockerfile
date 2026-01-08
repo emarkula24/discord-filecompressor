@@ -18,4 +18,4 @@ ARG SERVICE_DIR=
 WORKDIR /usr/src/app/${SERVICE_DIR}
 
 # CMD ["app"]
-CMD ["go", "run", "main.go"]
+CMD ["go", "run", "."]
