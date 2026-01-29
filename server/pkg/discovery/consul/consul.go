@@ -38,11 +38,19 @@ func (r *Registry) Register(ctx context.Context, instanceID string, serviceName 
 	if err != nil {
 		return err
 	}
+
+	// Only add "metrics" tag if the service name contains "metrics"
+	var tags []string
+	if strings.Contains(serviceName, "metrics") {
+		tags = []string{"metrics"}
+	}
+
 	return r.client.Agent().ServiceRegister(&consul.AgentServiceRegistration{
 		Address: parts[0],
 		ID:      instanceID,
 		Name:    serviceName,
 		Port:    port,
+		Tags:    tags,
 		Check:   &consul.AgentServiceCheck{CheckID: instanceID, TTL: "5s"},
 	})
 }

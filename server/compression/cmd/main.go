@@ -10,16 +10,20 @@ import (
 	"ffmpeg/wrapper/pkg/discovery/tracing"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"time"
 
 	grpchandler "ffmpeg/wrapper/compression/internal/handler/grpc"
+	"ffmpeg/wrapper/internal/util"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/segmentio/kafka-go"
+
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
@@ -61,24 +65,51 @@ func main() {
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
+	util.RecordMetrics()
+	http.Handle("/metrics", promhttp.Handler())
+	go func() {
+		if err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.Prometheus.MetricsPort), nil); err != nil {
+			logger.Fatal("Failed to start the metrics handler", zap.Error((err)))
+		}
+	}()
+
 	registry, err := consul.NewRegistry(cfg.ServiceDiscovery.Consul.Address)
 	if err != nil {
 		panic(err)
 	}
-	instanceID := discovery.GenerateInstanceID(serviceName)
-	if err := registry.Register(ctx, instanceID, serviceName, fmt.Sprintf("compression:%d", port)); err != nil {
+	apiInstanceID := discovery.GenerateInstanceID(serviceName + "-api")
+	metricsInstanceID := discovery.GenerateInstanceID(serviceName + "-metrics")
+
+	err = registry.Register(ctx, metricsInstanceID, serviceName+"-metrics", fmt.Sprintf("%s:%d", serviceName, cfg.Prometheus.MetricsPort))
+	if err != nil {
+		panic(err)
+	}
+
+	err = registry.Register(ctx, apiInstanceID, serviceName+"-api", fmt.Sprintf("%s:%d", serviceName, port))
+	if err != nil {
 		panic(err)
 	}
 	go func() {
-		for {
-			if err := registry.ReportHealthyState(instanceID, serviceName); err != nil {
+		ticker := time.NewTicker(2 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			if err := registry.ReportHealthyState(apiInstanceID, "api"); err != nil {
 				logger.Error("Failed to report healthy state", zap.Error(err))
 			}
-			time.Sleep(1 * time.Second)
+			if err := registry.ReportHealthyState(metricsInstanceID, "metrics"); err != nil {
+				logger.Error("Failed to report healthy state", zap.Error(err))
+			}
+		}
+
+	}()
+	defer func() {
+		if err := registry.Deregister(ctx, apiInstanceID, serviceName+"-api"); err != nil {
+			logger.Error("Failed to deregister API service", zap.Error(err))
+		}
+		if err := registry.Deregister(ctx, metricsInstanceID, serviceName+"-metrics"); err != nil {
+			logger.Error("Failed to deregister Metrics service", zap.Error(err))
 		}
 	}()
-	defer registry.Deregister(ctx, instanceID, serviceName)
-
 	var accountId = os.Getenv("accountId")
 	var accessKeyId = os.Getenv("accessKeyId")
 	var accessKey = os.Getenv("secretKey")

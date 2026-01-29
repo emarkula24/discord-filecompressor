@@ -1,0 +1,24 @@
+groups:
+- name: Service availability
+  rules:
+  - alert: Metadata service down
+    expr: up{service="metadata"} == 0
+    labels:
+      severity: warning
+    annotations:
+      title: Metadata service is down
+      description: Failed to scrape {{ $labels.service }}. Service possibly down.
+  - alert: compression service down
+    expr: up{service="compression"} == 0
+    labels:
+      severity: warning
+    annotations:
+      title: Metadata service is down
+      description: Failed to scrape {{ $labels.service }} service on {{ $labels.instance }}. Service possibly down.
+  - alert: Video service down
+    expr: up{service="video"} == 0
+    labels:
+      severity: warning
+    annotations:
+      title: Metadata service is down
+      description: Failed to scrape {{ $labels.service }} service on {{ $labels.instance }}. Service possibly down.

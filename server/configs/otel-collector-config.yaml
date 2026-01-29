@@ -1,0 +1,30 @@
+#Used to potentially combine cAdvisor metric and jaeger trace outputs to a single prometheus instance.
+
+# receivers:
+#   prometheus:
+#     config:
+#       scrape_configs:
+#         - job_name: 'all-services'
+#           consul_sd_configs:
+#             - server: 'consul:8500'
+#               services: []
+#               refresh_interval: 10s
+#           relabel_configs:
+#             - source_labels: ['__meta_consul_tags']
+#               regex: 'metrics'
+#               action: keep
+#           scrape_interval: 5s
+
+#         - job_name: cadvisor
+#           static_configs:
+#             - targets: ['cadvisor:8080']
+
+# exporters:
+#   prometheus:
+#     endpoint: 0.0.0.0:8889
+
+# service:
+#   pipelines:
+#     metrics:
+#       receivers: [prometheus]
+#       exporters: [prometheus]

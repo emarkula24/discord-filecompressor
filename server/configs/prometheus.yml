@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 5s
+  scrape_timeout: 5s
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  # Services discovered via Consul
+  - job_name: 'all-services'
+    consul_sd_configs:
+      - server: 'consul:8500'
+        services: []
+        refresh_interval: 10s
+    relabel_configs:
+      # Keep only services with the 'metrics' tag
+      - source_labels: ['__meta_consul_tags']
+        regex: '.*metrics.*'
+        action: keep
+      # Set job name to service name
+      - source_labels: ['__meta_consul_service']
+        target_label: 'job'
+      # Set metrics path
+      - target_label: '__metrics_path__'
+        replacement: '/metrics'
+      # Build the address from service address and port (not __meta_consul_address)
+      - source_labels: ['__meta_consul_service_address', '__meta_consul_service_port']
+        separator: ':'
+        target_label: '__address__'
+
+  # # Cadvisor scrape
+  # - job_name: 'cadvisor'
+  #   static_configs:
+  #     - targets: ['cadvisor:8080']
+
+rule_files:
+  - alerts.rules
